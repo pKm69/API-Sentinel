@@ -4,17 +4,16 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS
+
 def ensure_valid_url(endpoint):
     if not endpoint.startswith("http://") and not endpoint.startswith("https://"):
         endpoint = "https://" + endpoint
     return endpoint
 
-
-
 @app.route('/scan', methods=['POST'])
 def scan_api():
     data = request.get_json()
-    
+
     if not data or 'endpoint' not in data:
         return jsonify({"error": "Endpoint is required"}), 400
 
@@ -24,11 +23,12 @@ def scan_api():
     try:
         # Test 1: Authentication Testing
         auth_response = requests.get(api_endpoint, timeout=5)
-        if auth_response.status_code == 200:
+        if auth_response.status_code == 200 and "Authorization" not in auth_response.request.headers:
             vulnerabilities.append({
                 "type": "Authentication",
                 "severity": "High",
-                "description": "Missing token validation"
+                "description": "Missing token validation",
+                "location": "Request Headers (Authorization missing)"
             })
 
         # Test 2: Authorization Testing
@@ -37,25 +37,33 @@ def scan_api():
             vulnerabilities.append({
                 "type": "Authorization",
                 "severity": "High",
-                "description": "Unauthorized access allowed"
+                "description": "Unauthorized access allowed",
+                "location": "Request Headers (Invalid token accepted)"
             })
 
-        # Test 3: Input Validation Testing
+        # Test 3: Input Validation Testing (SQL Injection)
         injection_payload = "' OR 1=1 --"
-        injection_response = requests.get(f"{api_endpoint}?input={injection_payload}", timeout=5)
+        injection_url = f"{api_endpoint}?input={injection_payload}"
+        injection_response = requests.get(injection_url, timeout=5)
+        
         if "error" not in injection_response.text.lower():
             vulnerabilities.append({
                 "type": "Input Validation",
                 "severity": "Critical",
-                "description": "SQL Injection vulnerability detected"
+                "description": "SQL Injection vulnerability detected",
+                "location": f"Query Parameter: input={injection_payload}"
             })
 
         # Test 4: Sensitive Data Exposure
-        if any(keyword in auth_response.text.lower() for keyword in ["email", "phone"]):
+        sensitive_keywords = ["email", "phone", "password"]
+        exposed_fields = [word for word in sensitive_keywords if word in auth_response.text.lower()]
+
+        if exposed_fields:
             vulnerabilities.append({
                 "type": "Sensitive Data Exposure",
                 "severity": "Medium",
-                "description": "API leaks PII"
+                "description": "API leaks Personally Identifiable Information (PII)",
+                "location": f"Response Body (Contains: {', '.join(exposed_fields)})"
             })
 
         # Test 5: Insecure HTTP Methods
@@ -67,7 +75,8 @@ def scan_api():
                     vulnerabilities.append({
                         "type": "Insecure HTTP Methods",
                         "severity": "High",
-                        "description": f"{method} method is enabled"
+                        "description": f"{method} method is enabled",
+                        "location": f"Allowed Method: {method}"
                     })
             except requests.exceptions.RequestException:
                 pass  # Ignore errors for methods that might not be supported
