@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeceptiScan</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>API Sentinel</h1>
+    <p>Scan your API for vulnerabilities in seconds!</p>
+
+    <div class="input-section">
+      <input type="text" id="endpoint" placeholder="Enter API Endpoint">
+      <button id="scan-btn">Scan</button>
+      <button id="download-pdf">Download Report as PDF</button>
+      <button id="share-report">Share Report</button>
+    </div>
+
+    <div id="loader" class="loader"></div>
+
+    <div class="score-container">
+      <h2 id="score-text">Score: - / 100</h2>
+    </div>
+
+    <div class="results-section">
+      <h2>Scan Results</h2>
+      <div id="summary"></div>
+      <ul id="results-list"></ul>
+    </div>
+    
+    <div class="marking-scheme">
+      <h2>Marking Scheme</h2>
+      <table>
+        <tr>
+          <th>Vulnerability Type</th>
+          <th>Points Deducted</th>
+        </tr>
+        <tr>
+          <td>Critical (e.g., SQL Injection, Authentication Bypass)</td>
+          <td>-40</td>
+        </tr>
+        <tr>
+          <td>High (e.g., Unauthorized Access, Insecure HTTP Methods)</td>
+          <td>-25</td>
+        </tr>
+        <tr>
+          <td>Medium (e.g., Sensitive Data Exposure)</td>
+          <td>-15</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
