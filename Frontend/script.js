@@ -40,7 +40,8 @@ document.getElementById('scan-btn').addEventListener('click', async () => {
     if (data.vulnerabilities.length > 0) {
       data.vulnerabilities.forEach((vuln) => {
         const li = document.createElement('li');
-        li.innerHTML = `<strong>${vuln.type}</strong> - ${vuln.severity}: ${vuln.description}`;
+        li.innerHTML = `<strong>${vuln.type}</strong> - ${vuln.severity}: ${vuln.description} <br>
+                        <em>Location:</em> ${vuln.location}`;
         resultsList.appendChild(li);
       });
     } else {
@@ -71,7 +72,7 @@ function updateScore(summary) {
   document.getElementById("score-text").textContent = `Score: ${score} / 100`;
 }
 
-// PDF Generation Function
+// PDF Generation Function (Includes vulnerability locations)
 function generatePDF() {
   if (!window.latestScanData) {
     alert("No scan results available. Please scan an API first.");
@@ -93,7 +94,8 @@ function generatePDF() {
     doc.setFont("helvetica", "normal");
     doc.text(`Severity: ${vuln.severity}`, 10, y + 5);
     doc.text(`Description: ${vuln.description}`, 10, y + 10);
-    y += 20; // Move down for the next item
+    doc.text(`Location: ${vuln.location}`, 10, y + 15);
+    y += 25; // Move down for the next item
   });
 
   // Add Summary
@@ -130,7 +132,8 @@ document.getElementById('share-report').addEventListener('click', async () => {
     doc.setFont("helvetica", "normal");
     doc.text(`Severity: ${vuln.severity}`, 10, y + 5);
     doc.text(`Description: ${vuln.description}`, 10, y + 10);
-    y += 20;
+    doc.text(`Location: ${vuln.location}`, 10, y + 15);
+    y += 25;
   });
 
   doc.setFont("helvetica", "bold");
